@@ -1,0 +1,51 @@
+% HW1_Morell.m
+% Description:  Computes the GPS L1, L2, and L5 signal Doppler frequency as
+%               a function of satellite elevation angle and plots results
+% Inputs:       Satellite elevation angle: 0 to 90 degrees in 5 degree
+%               increments
+% Output:       Doppler frequency at L1, L2, L5 plotted as functions of
+%               elevation
+% Date Written: 1/12/2010
+% Date Modified: N/A
+
+clc
+clear all
+close all
+
+el = 0:5:90;    % SV elevation angle in degrees
+rE = 6368;      % radius of the Earth in km
+rSV = 26560;    % SV orbit radius in km
+c = 299792458;  % speed of light in m/s
+% L1, L2, L5 signal frequencies in Hz
+fL1 = 1575.42e6; fL2 = 1227.60e6; fL5 = 1176.45e6;
+
+% Compute GPS SV velocity
+vSV = 2*pi*rSV*1000/(11*3600+58*60+2.05);   % in m/s
+
+% Compute line-of-sight velocity, vDop
+[~,sampSize] = size(el);    % number of samples of the SV elevation angle
+vDop = 1:sampSize;
+for i=1:sampSize
+    B = asind(rE*sind(el(i)+90)/rSV);   % angle between user and Earth's 
+                                        % center measured from the SV in degrees
+    a = 180 - (B+el(i)+90); % angle between user and SV measured from Earth's
+                            % center in degrees
+    vDop(i) = vSV*sind(a)/sqrt(1+(rSV/rE)^2-2*(rSV/rE)*cosd(a));  % in m/s
+end
+
+% Compute Doppler frequency (in Hz) for L1, L2, and L5 signals
+fDopL1 = fL1.*vDop./c;
+fDopL2 = fL2.*vDop./c;
+fDopL5 = fL5.*vDop./c;
+
+% Plot Doppler frequencies vs. SV elevation
+figure;
+plot(el,fDopL1,'-ro','MarkerSize',7,'MarkerFaceColor','r')
+hold on
+plot(el,fDopL2,'-g+','MarkerSize',7,'MarkerEdgeColor','k')
+plot(el,fDopL5,'-cx','MarkerSize',7,'MarkerEdgeColor','b') 
+legend('L1','L2','L5'); grid;
+title('GPS Signal Doppler Frequencies at Varying Satellite Elevations');
+xlabel('SV Elevation (degrees)'); ylabel('Doppler Frequency (Hz)');
+
+

@@ -1,0 +1,49 @@
+% DLLDiscrimFilter.m
+% Description:  Computes DLL discriminator number 6 value for 100 ms of
+%               dat, then filters the result. Plots both the raw
+%               discriminator value and the filtered output
+% Inputs:       f0, ADC output center, Hz
+%               fs, Sampling frequency, Hz
+%               TI, Integration time, s
+%               nd,Correlator spacing, samples
+%               B, Filter equivalent noise bandwidth
+%               PRN, PRN of desired SV
+%               fdEst, estimated Doppler frequency, Hz
+%               n0Est, estimated code phase
+%               xb, input baseband signal
+% Outputs:      L, DLL discriminator output for 100 ms of data
+%               Lp, filtered output of DLL discriminator values for 100 ms
+%               of data
+%               Plots of L and Lp
+% Date:         02/08/2011
+% Modified:     05/01/2011 (Jared Morell)
+% Author:       Jade Morton
+
+function [L Lp] = DLLDiscrimFilter(f0, fs, TI, nd, B, PRN, fdEst, n0Est, xb)
+
+% Variables
+ts = 1/fs;          % Sample period (s)
+nTI = TI*fs;        % Number of samples in integration time
+
+% Compute discriminator for first TI ms data.
+xTI = xb(1:nTI);
+L(1) = DLLDiscriminator6(xTI, PRN, fs, fdEst, n0Est, nd, TI);
+Lp(1) = L(1);
+
+% Compute discriminator for each of the remaining ms of data and filter them.
+for ii=2:99
+    xTI=xb((ii-1)*nTI+1:ii*nTI);
+    L(ii) = DLLDiscriminator6(xTI, PRN, fs, fdEst, n0Est, nd, TI);
+    Lp(ii)=Lp(ii-1) + TI*4*B*(L(ii)-Lp(ii-1));
+end
+
+% Plot
+figure();
+plot(1:99,L,'r+',1:99,Lp,'bo');
+h = legend('Raw Discriminator','Filtered Output',2);
+set(h,'Interpreter','none');
+title(['Discriminator Output Before and After Applying Filter Using Filter' ...
+    ' Equivalent Noise Bandwidth of ', num2str(B),' Hz']); 
+xlabel('Time (ms)'); ylabel('Discriminator #6');
+
+

@@ -1,0 +1,54 @@
+% Program Name: signalGen.m
+% Description:  signal generator for GPS L1 signal
+% Inputs:       L, code length, in miliseconds
+%               fs, sampling frequency
+%               f0, ADC output center frequency in MHz
+%               nADC, ADC bit number
+%               B, Front end bandwidth in Hz
+%               PRN, user specified GPS SV ID
+%               CN0, carrier to noise ration in dB-Hz
+%               n0, initial code pahse index
+%               phi, carrier phase in radians
+%               fd, carrier doppler frequency in Hz
+%               noiseFlag, 1--add noise; 0--do not add noise
+%               navFlag, 1--add navigation data bit; 0--do not add
+%                    navigation data bit
+% Output:       simGPSL1_M.dat, simulated output for multiple satellites
+% Programmer:   Jade Morton
+% Date Written: N/A
+% Date Modified:4/1/2011 (Jared Morell)
+
+clc
+clear all
+close all
+
+L = 1;                      % Data length in s
+fs = 5e6;                   % Sampling frequency in Hz
+nADC = 4;                   % ADC bit number
+B = 2e6;                    % Front end bandwidth in Hz
+PRN = [4 7 10 15];          % SV ID
+CN0 = [47 47 50 46];        % dB-Hz
+f0 = 1.25e6;                % ADC output center frequency in MHz
+n0 = [100 1225 2500 4999];  % Initial code pahse index
+phi = [0 0 0 0];            % Carrier phase in radians
+fd = [300 600 2000 3000];   % Carrier Doppler frequency in Hz
+noiseFlag = 1;              % 1--add noise; 0--do not add noise
+navFlag = 1;                % 1--add navigation data bit; 0--do not add navigation data bit
+
+% Generate signal
+[xm] = simGPSL1_M(L, fs, f0, nADC, B, PRN, CN0, n0, phi, fd, noiseFlag, navFlag);
+
+% Resample signal to achieve final sampling frequency of 5 MHz
+% ns = L*fs;          % total number of samples in signal
+% offset = 7;         % number of bits to offset resampled signal
+% s = 1:ns;           % sample index array
+% ind = s(mod(s,10) == offset); % new indices array
+% xm = xm_f(ind);
+
+% Write the output to file
+fileName='simGPSL1_M_1s.dat'; 
+fid = fopen(fileName,'wb'); 
+fwrite(fid,xm,'schar'); 
+fclose(fid);
+
+

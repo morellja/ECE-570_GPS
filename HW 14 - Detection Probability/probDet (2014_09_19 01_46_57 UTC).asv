@@ -1,0 +1,36 @@
+% probDet.m
+% Description:  Calculates the probability of detection for a system given
+%               user inputs
+% Inputs:       Pfa, probability of false alarm
+%               sigma, RMS value of noise power
+%               T, dwell time (s)
+%               CN0, carrier-to-noise ratio (dB-Hz)
+% Outputs:      Vt, threshold value of system
+%               Pd, probability of detection
+% Date:         04/11/2011
+% Modified:     N/A
+% Author:       Jared Morell
+
+function [Vt Pd] = probDet(Pfa, sigma, CN0, T)
+
+% Constants and variables
+% Pfa = 0.10;     % 10% probability of a false alarm
+% sigma = 1;      % RMS value of noise power
+% T = [0.001 0.1];% Dwell time (s)
+% CN0 = [20 25 30 35 40 45 50];   % Carrier-to-noise ratios (dB-Hz)
+B = 1/T;
+theta = 0:1/(2*B):10;
+z = 0:1/(2*B):10;
+
+% Calculate threshold value for system
+Vt = sigma*sqrt(-2*log(Pfa));
+
+% Calculate SNR
+SNR = CN0 + 10*log10(T); % dB
+
+
+% Calculate zero-order Bessel function
+I0 = 1/pi*INTEGRAL
+
+% Calculate probability of detection
+Pd = 

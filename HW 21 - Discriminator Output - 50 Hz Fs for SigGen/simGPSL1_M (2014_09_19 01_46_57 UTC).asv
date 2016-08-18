@@ -1,0 +1,70 @@
+% simGPSL1_M.m
+% Description:  Generates a simulated received GPS L1 band signal for  
+%               multiple satellites
+% Inputs:       L, data length (s)
+%               fs, sampling frequency (Hz)
+%               f0, ADC output center frequency (Hz)
+%               nADC, number of bits used in ADC
+%               B, front end bandwidth (Hz)
+%               PRN, PRN for desired satellite
+%               CN0, carrier-to-noise ratio (dB-Hz)
+%               n0, initial code phase index
+%               phi, carrier phase (radians)
+%               fd, carrier Doppler frequency (Hz)
+%               noiseFlag, 1 if thermal noise should be added to signal
+%               navFlag, 1 if navigation data should be modulated
+% Outputs:      xm, received digitized signal
+% Date:         02/18/2011 (Jade Morton)
+% Modified:     03/29/2011 (Jared Morell)
+
+%%%%%%%%%%%% CHANGE TO MAKE MORE LIKE simGPSL1_1%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [xm] = simGPSL1_M(L, fs, f0, nADC, B, PRN, CN0, n0, phi, fd, noiseFlag, navFlag)
+
+% Constants and variables
+fc = 1.023e6;               % L1 CA code chipping rate in Hz
+fL1 = 1.57542e9;            % L1 carrier frequency in Hz
+ts = 1/fs;                  % Sample interval (s)
+ns1 = 1e-3*fs;              % Sample # in one code period.
+ns = L*fs;                  % Total number of samples
+n = [0:ns/10-1];            % Sample index array
+fc = fc*(1+fd/fL1);         % Effective code rate in Hz (array)
+tc = 1./fc;                 % Effective code chip length (array)
+noSV = length(PRN);         % Number of satellite signals to generate
+k = 1.38e-23;               % Boltzman constant
+TK = 535;                   % Equivalent noise temperature in Kelvin
+Pn = k*TK;                  % Noise power density
+
+% Generate signal
+A = sqrt(2*Pn)*10.^(CN0/20);    % Signal amplitude (array)
+CA = zeros(noSV,500000);
+CA_shift = zeros(noSV,500000);
+xm = zeros(noSV,50000);
+for ii = 1: noSV
+    CA(ii,:) = CASamples(L,fs,fd(ii),PRN(ii));    
+    if (navFlag == 1)
+        CA(ii,:) = CA(ii,:).* navBitsSamples(L,fs,fd(ii));  
+    end
+    icp = ns - n0(ii) + 2;  
+    CA_shift(ii,:) =[CA(ii,icp:ns) CA(ii,1:ns-n0(ii)+1)];
+    
+    % Sampled at 50 MHz, but take 1 of every 10 samples to return to fs = 5 MHz
+    jj = 1;
+    while jj < length(CA(1,:))/10;
+        % Complete signal sequence:
+        xm(ii,jj) = A(ii)*CA_shift(ii,(jj-1)*10+1).*cos(2*pi*(f0+fd(ii))*ts*n(jj) + phi(ii));
+        jj = jj+1;
+    end
+end
+
+if (noiseFlag == 1); 
+    noise = sqrt(B)*randn(1, ns/10);  
+    xm = sum(x,1)+noise;  
+end
+
+maxX = max(abs(xm));  
+xm = xm * 2^(nADC-1)/ maxX; 
+xm = round(xm);
+
+
+

@@ -1,0 +1,41 @@
+% HW2_Morell.m
+% Description:  Creates a periodic square pulse signal and derives its
+%               frequency domain representation.
+% Inputs:       The signal's amplitude, period, duty cycle, sampling
+%               frequency, number of samples, and length of signal
+% Output:       Plots of the sampled square pulse signal and its spectrum
+% Date Written: 1/20/2010
+% Date Modified: N/A
+
+clc
+clear all
+
+% Define time domain signal parameters
+a = 1;      % amplitude (V)
+T = 2;      % period (s)
+duty = 50;  % duty cycle (%)
+fs = 30/T;  % sampling frequency (Hz)
+dt = 1/fs;  % time between samples (s)
+L = 5*T;    % time length of signal (s)
+
+% Frequency domain signal parameters
+df = 1/L;   % frequency step size (Hz)
+B = fs;     % bandwidth (Hz)
+
+% Time and frequency vectors
+N = 61;     % total number of samples
+n = 0:(N-1);% samples
+t = n*dt;   % time variable (s)
+f = n*df;   % frequency variable (Hz)
+
+% Form square pulse and compute its spectrum
+c = a*square(2*pi*t/T, duty);   % square pulse signal
+C = fft(c);                   % frequency domain representation of signal
+
+% Plot the square pulse signal and its spectrum
+subplot(211); plot(t,c,'b*');
+title('Sampled Square Pulse Signal in Time Domain'); 
+xlabel('Time (s)'); ylabel('Amplitude (V)');
+subplot(212); stem(f,abs(C),'ro');
+title('Sampled Square Pulse Signal''s Spectrum'); 
+xlabel('Frequency (Hz)'); ylabel('Magnitude');
